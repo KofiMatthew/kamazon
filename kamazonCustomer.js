@@ -5,7 +5,7 @@ var connection = mysql.createConnection({
     host: "localhost",
     port: 3306,
     user: "root",
-    password: "#",
+    password: "yourRootPassword",
     database: "kamazon"
 })
 
@@ -52,26 +52,24 @@ function purchaseOrder(){
         function(answer){
             var po_id = parseFloat(answer.po_id);
             var po_quantity = parseFloat(answer.po_quantity)
-            console.log("id: " + po_id + " " + "po quantity: " + po_quantity);
+            console.log("You have selected " + po_quantity + " of item: " + po_id);
         var query = "SELECT * FROM products WHERE ?";
         connection.query(query, {item_id: po_id}, function(err, res){
         var stockQuantity = res[0].stock_quantity;
-            console.log("stock quantity: " + stockQuantity);
             var stockTest = ((po_quantity > 0) && (po_quantity < res[0].stock_quantity))
             if (stockTest){
-                var po_price = res[0].price * po_quantity;
+                var po_price = (res[0].price * po_quantity).toFixed(2);
                 updateProduct(po_id, stockQuantity, po_quantity, po_price)
             } else {
                 console.log("Insufficient Quantity!");
-                purchaseOrder();
+                keepShopping();
             }
         })
     })
 }
 
 function updateProduct(id, stockQuant, po_quantity, price) {
-    var newQuantity = stockQuant-po_quantity
-
+    var newQuantity = stockQuant-po_quantity;
     connection.query("UPDATE products SET ? WHERE ?",[
         {
             stock_quantity: newQuantity
@@ -81,10 +79,31 @@ function updateProduct(id, stockQuant, po_quantity, price) {
         }
     ],
     function(err, res) {
-        console.log("updated inventory: " + res[0]);
-/*         console.log(res.affectedRows + " products updated!\n"); */
+        console.log("Your purchase total is: $" + price);
+        console.log("Purchase complete.");
+        keepShopping()        
     }
     );
-    console.log("Your purchase total is: $" + price)
+}
+
+function keepShopping() {
+    inquirer.prompt([
+        {
+            name: "continue",
+            type: "confirm",
+            message: "Would you like to continue shopping?",
+            default: true
+        }
+    ])
+    .then(function(answer){
+        if (answer.continue){
+            storeFront();
+        } 
+        else {
+            console.log("Thank you for shopping with Kamazon!")
+            connection.end();
+            return;
+        }
+    })
 }
 
