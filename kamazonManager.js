@@ -121,109 +121,132 @@ function restock() {
       var id = parseFloat(answer.po_id);
       var restock = parseFloat(answer.restock_quantity);
       console.log(
-        "You are adding " +
-          restock +
-          " to product #" +
-          id +
-          " in inventory."
+        "You are adding " + restock + " to product #" + id + " in inventory."
       );
 
       var query = "SELECT * FROM products WHERE ?";
       connection.query(query, { item_id: id }, function(err, res) {
         var newQuantity = res[0].stock_quantity + restock;
-        update(id, newQuantity)
+        update(id, newQuantity);
       });
 
-      function update(id, newQuantity){
+      function update(id, newQuantity) {
         connection.query(
-            "UPDATE products SET ? WHERE ?",
-            [
-              {
-                stock_quantity: newQuantity
-              },
-              {
-                item_id: id
-              }
-            ],
-            function(err, res) {
-              console.log("Item #" + id + " has received " + restock + " and now has " + newQuantity + " in stock.");
-              continueManaging();
+          "UPDATE products SET ? WHERE ?",
+          [
+            {
+              stock_quantity: newQuantity
+            },
+            {
+              item_id: id
             }
-          );
-      };
-      
+          ],
+          function(err, res) {
+            console.log(
+              "Item #" +
+                id +
+                " has received " +
+                restock +
+                " and now has " +
+                newQuantity +
+                " in stock."
+            );
+            continueManaging();
+          }
+        );
+      }
     });
 }
 
 function newItem() {
-  console.log("Please provide all the information to add the new product to inventory.");
+  console.log(
+    "Please provide all the information to add the new product to inventory."
+  );
   inquirer
     .prompt([
-    {//build a function to grab the largest ID of the existing set & add 1
-      name: "new_id",
-      type: "input",
-      message: "What is the ID# for the item you are adding?",
-      validate: function(value) {
-        if (isNaN(parseFloat(value)) === false) {
-        return true;
-        }
-        return false;
-        }
-    },
-    {
-      name: "new_name",
-      type: "input",
-      message: "What is the name of the product?",
-      validate: function(value) {
-        if (value !== "") {
-          return true;
-        }
-        return false;
-      }
-      },{
-      name: "new_department",
-      type: "list",
-      message: "Which department will be selling this product?",
-      choices: ["arts & crafts", "automotive", "beauty & personal care", "books", "clothing", "electronics", "garden", "home goods", "kitchen", "outdoors", "tools", "other"],
-      defualt: "home goods"
-    },{
-      name: "new_price",
-      type: "input",
-      message: "What is the sales price for one unit?",
-      validate: function(value) {
-        if (isNaN(parseFloat(value)) === false) {
-        return true;
-        }
-        return false;
-        }
-    },{
-      name: "new_stock_quantity",
-      type: "input",
-      message: "How many are you adding to inventory?",
-      validate: function(value) {
-        if (isNaN(parseFloat(value)) === false) {
-        return true;
-        }
-        return false;
-        }
-    }
-  ])
-  .then(
-    function(answer){
-    var query = "INSERT INTO products SET ?";
-    connection.query(query, 
       {
-        item_id: answer.new_id,
-        product_name: answer.new_name,
-        department_name: answer.new_department,
-        price: answer.new_price,
-        stock_quantity: answer.new_stock_quantity
-      }, 
-      function(err, res){
-        console.log(res.affectedRows + " product inserted!\n");
-        continueManaging();
-    })
-  })
+        //build a function to grab the largest ID of the existing set & add 1
+        name: "new_id",
+        type: "input",
+        message: "What is the ID# for the item you are adding?",
+        validate: function(value) {
+          if (isNaN(parseFloat(value)) === false) {
+            return true;
+          }
+          return false;
+        }
+      },
+      {
+        name: "new_name",
+        type: "input",
+        message: "What is the name of the product?",
+        validate: function(value) {
+          if (value !== "") {
+            return true;
+          }
+          return false;
+        }
+      },
+      {
+        name: "new_department",
+        type: "list",
+        message: "Which department will be selling this product?",
+        choices: [
+          "arts & crafts",
+          "automotive",
+          "beauty & personal care",
+          "books",
+          "clothing",
+          "electronics",
+          "garden",
+          "home goods",
+          "kitchen",
+          "outdoors",
+          "tools",
+          "other"
+        ],
+        defualt: "home goods"
+      },
+      {
+        name: "new_price",
+        type: "input",
+        message: "What is the sales price for one unit?",
+        validate: function(value) {
+          if (isNaN(parseFloat(value)) === false) {
+            return true;
+          }
+          return false;
+        }
+      },
+      {
+        name: "new_stock_quantity",
+        type: "input",
+        message: "How many are you adding to inventory?",
+        validate: function(value) {
+          if (isNaN(parseFloat(value)) === false) {
+            return true;
+          }
+          return false;
+        }
+      }
+    ])
+    .then(function(answer) {
+      var query = "INSERT INTO products SET ?";
+      connection.query(
+        query,
+        {
+          item_id: answer.new_id,
+          product_name: answer.new_name,
+          department_name: answer.new_department,
+          price: answer.new_price,
+          stock_quantity: answer.new_stock_quantity
+        },
+        function(err, res) {
+          console.log(res.affectedRows + " product inserted!\n");
+          continueManaging();
+        }
+      );
+    });
 }
 
 function continueManaging() {
